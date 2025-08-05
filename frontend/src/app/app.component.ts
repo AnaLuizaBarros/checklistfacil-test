@@ -1,72 +1,95 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { TarefaService } from './services/tarefas.service';
+import { ITask } from './models/tarefas.interface';
+import { finalize } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  title = 'Todo List';
-  todos: any[] = [];
-  newTodo: any = { title: '', completed: false };
-  apiUrl = 'http://localhost:8000/tarefas';
+  public title: string = 'Todo List';
+  public todos: ITask[] = [];
+  public newTodoTitle: string = '';
+  public isLoading: boolean = true;
+  public errorMessage: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private tarefaService: TarefaService) {}
 
   ngOnInit() {
-    this.http.get(this.apiUrl).subscribe(
-      (data: any) => {
-        this.todos = data;
-      },
-      (erro) => {
-        console.error('Erro ao carregar tarefas:', erro);
-        this.todos = [
-          { id: 1, title: 'Tarefa offline 1', completed: false },
-          { id: 2, title: 'Tarefa offline 2', completed: true }
-        ];
-      }
-    );
+    this.getTarefas();
   }
 
-  addTodo() {
-    if (!this.newTodo.title.trim()) return;
-    
-    this.http.post(this.apiUrl, {
-      title: this.newTodo.title
-    }).subscribe(
-      (response: any) => {
-        this.todos.push(response);
-        
-        this.newTodo = { title: '', completed: false };
-      },
-      (erro) => {
-        console.error('Erro ao adicionar tarefa:', erro);
-        const fakeTodo = {
-          id: Math.floor(Math.random() * 1000),
-          title: this.newTodo.title,
-          completed: false
-        };
-        this.todos.push(fakeTodo);
-        this.newTodo = { title: '', completed: false };
-      }
-    );
+  private getTarefas(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.tarefaService
+      .getTarefas()
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (data: ITask[]) => {
+          this.todos = data;
+        },
+        error: (err: HttpErrorResponse) => {
+          this.errorMessage =
+            'Falha ao carregar as tarefas. O backend está rodando?';
+          console.error('Erro ao carregar tarefas:', err);
+        },
+      });
   }
 
-  removeTodo(id: number) {
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe(
-      () => {
-        this.todos = this.todos.filter(todo => todo.id !== id);
-      },
-      (erro) => {
-        console.error('Erro ao remover tarefa:', erro);
-        this.todos = this.todos.filter(todo => todo.id !== id);
-      }
-    );
+  public addTodo(): void {
+    if (this.newTodoTitle.trim() === '') return;
+
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.tarefaService
+      .addTarefa(this.newTodoTitle)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (response: ITask) => {
+          this.todos.push(response);
+          this.newTodoTitle = '';
+        },
+        error: (err: HttpErrorResponse) => {
+          this.errorMessage = 'Falha ao adicionar a tarefa.';
+          console.error(err);
+        },
+      });
+  }
+
+  public removeTodo(id: number): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.tarefaService
+      .deleteTarefa(id)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.todos = this.todos.filter((todo) => todo.id !== id);
+        },
+        error: (err) => {
+          this.errorMessage = 'Falha ao remover a tarefa.';
+          console.error(err);
+        },
+      });
   }
 }

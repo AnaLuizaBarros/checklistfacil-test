@@ -1,0 +1,80 @@
+$primary-color: #4caf50;
+$danger-color: #f44336;
+$light-gray: #ddd;
+$text-gray: gray;
+$white-color: white;
+
+.container {
+  padding: 20px;
+}
+
+.add-todo-form {
+  margin-bottom: 20px;
+}
+
+.todo-input {
+  padding: 8px;
+  width: 300px;
+}
+
+.add-button {
+  padding: 8px 16px;
+  margin-left: 10px;
+  background-color: $primary-color;
+  color: $white-color;
+  border: none;
+  cursor: pointer;
+}
+
+.feedback-message {
+  color: $text-gray;
+}
+
+.error-message {
+  color: $danger-color;
+  background-color: lighten($danger-color, 35%);
+  border: 1px solid $danger-color;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+.todo-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.todo-item {
+  padding: 10px;
+  margin-bottom: 5px;
+  border: 1px solid $light-gray;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.todo-title {
+  &.completed {
+    text-decoration: line-through;
+    color: $text-gray;
+  }
+}
+
+.remove-button {
+  background-color: $danger-color;
+  color: $white-color;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

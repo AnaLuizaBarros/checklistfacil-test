@@ -1,46 +1,42 @@
-<div style="padding: 20px; font-family: Arial;">
+<main class="container">
   <h1>{{ title }}</h1>
 
-  <div style="margin-bottom: 20px;">
-    <input 
-      type="text" 
-      [(ngModel)]="newTodo.title" 
-      placeholder="Digite uma nova tarefa"
-      style="padding: 8px; width: 300px;"
-    />
-    <button 
-      (click)="addTodo()" 
-      style="padding: 8px 16px; margin-left: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;"
-    >
+  <form (ngSubmit)="addTodo()" class="add-todo-form">
+    <input type="text" id="new-todo-input" [(ngModel)]="newTodoTitle" name="newTodoTitle" placeholder="Digite uma nova tarefa" class="todo-input" [disabled]="isLoading" aria-describedby="error-message" />
+    <button type="submit" class="add-button" [disabled]="isLoading || newTodoTitle.trim() === ''">
       Adicionar
     </button>
-  </div>
+  </form>
 
-  <div>
-    <h2>Tarefas</h2>
-    
-    <div *ngIf="todos.length === 0" style="color: gray;">
+  <section aria-labelledby="todos-heading">
+    <h2 id="todos-heading">Tarefas</h2>
+
+    <div *ngIf="isLoading" class="feedback-message" role="status" aria-live="polite">
+      Carregando tarefas...
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message" role="alert" aria-live="assertive" id="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && todos.length === 0 && !errorMessage" class="feedback-message" role="status" aria-live="polite">
       Nenhuma tarefa encontrada.
     </div>
-    
-    <ul style="list-style-type: none; padding: 0;">
-      <li 
-        *ngFor="let todo of todos" 
-        style="padding: 10px; margin-bottom: 5px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;"
-      >
-        <span [style.text-decoration]="todo.completed ? 'line-through' : 'none'">
+
+    <ul *ngIf="!isLoading && todos.length > 0" class="todo-list" aria-label="Lista de tarefas pendentes e concluídas">
+      <li *ngFor="let todo of todos" class="todo-item">
+        <span [id]="'todo-' + todo.id" class="todo-title" [ngClass]="{'completed': todo.completed}">
           {{ todo.title }}
+
+          <!-- Texto que será lido apenas por leitores de tela -->
+          <span *ngIf="todo.completed" class="sr-only"> (completada)</span>
         </span>
-        
-        <button 
-          (click)="removeTodo(todo.id)" 
-          style="background-color: #f44336; color: white; border: none; padding: 5px 10px; cursor: pointer;"
-        >
+
+
+        <button (click)="removeTodo(todo.id)" class="remove-button" [attr.aria-label]="'Remover a tarefa ' + todo.title">
           Remover
         </button>
       </li>
     </ul>
-  </div>
-</div>
-
-<router-outlet />
+  </section>
+</main>
